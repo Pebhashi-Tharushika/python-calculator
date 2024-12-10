@@ -1,4 +1,7 @@
+import os
+
 cal_list = []
+print('WELCOME!')
 
 def add(a, b):
     return a + b
@@ -34,14 +37,23 @@ def history():
         for cal in cal_list:
             print(cal)
 
+def clear():
+    # Clear the console - 'nt' for Windows and 'posix' for Unix-like systems
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print('WELCOME!')
+
 
 def select_op(selection):
     if selection == '#':
         return -1
     elif selection == '$':
+        clear()
         return 0
     elif selection == '?':
         history()
+        return 0
+    elif selection == 'X':
+        clear()
         return 0
     elif selection in ('+', '-', '*', '/', '^', '%'):
         num1 = 0.0
@@ -49,9 +61,10 @@ def select_op(selection):
         result = 0.0
 
         while True:
-            num1s = str(input("Enter Calculator number: "))
+            num1s = str(input("Enter First number: "))
             print(num1s)
             if num1s.endswith('$'):
+                clear()
                 return 0
             if num1s.endswith('#'):
                 return -1
@@ -67,6 +80,7 @@ def select_op(selection):
             num2s = str(input("Enter second number: "))
             print(num2s)
             if num2s.endswith('$'):
+                clear()
                 return 0
             if num2s.endswith('#'):
                 return -1
@@ -109,12 +123,12 @@ while True:
     print("4.Divide   : / ")
     print("5.Power    : ^ ")
     print("6.Remainder: % ")
-    print("7.Terminate: # ")
+    print("7.History  : ? ")
     print("8.Reset    : $ ")
-    print("8.History  : ? ")
+    print("9.Terminate: # ")
 
     # take input from the user
-    choice = input("Enter choice(+,-,*,/,^,%,#,$,?): ")
+    choice = input("Enter choice(+,-,*,/,^,%,?,$,#): ")
     print(choice)
     if select_op(choice) == -1:
         # program ends here
