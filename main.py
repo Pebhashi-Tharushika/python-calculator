@@ -80,6 +80,14 @@ menus = {
     ])
 }
 
+# Define operations that require only one number for each menu
+single_number_operations = {
+    "basic": ["^", "root"],
+    "advanced": ["||", "%", "log", "ln", "n!"],
+    "trigonometric": ["sin", "cos", "tan", "cosec", "sec", "cot"],
+    "programming": ["bin", "oct", "hex", "~", "!"]
+}
+
 
 # Displays a menu dynamically
 def show_menu(menu_name):
@@ -99,7 +107,7 @@ def show_menu(menu_name):
             # Adjust padding based on the number of digits
             digit = count_digits(idx)
             padding = 21 - digit
-            print(f"{idx}. {desc:<{padding}}: {shortcut}")
+            print(f"\033[34m{idx}. {desc:<{padding}}: {shortcut}\033[0m")
 
         is_exist_menu = True
         handle_menu_input(menu_name, options)
@@ -126,7 +134,6 @@ def handle_menu_input(menu_name, options):
                 return
             elif choice == "$":
                 clear()
-                history[menu_name] = []
                 show_menu(menu_name)
             elif choice == "?":
                 clear()
@@ -167,22 +174,39 @@ def select_angle_unit(unit):
 def perform_operation(menu_name, operation):
     global is_exist_menu
 
-    num1 = get_number("Enter first number")
-
-    if menu_name == "basic" and operation not in ["^", "root"]:
-        num2 = get_number("Enter second number")
-    elif menu_name == "advanced" and operation not in ["||", "%", "log", "ln", "n!"]:
-        num2 = get_number("Enter second number")
-    elif menu_name == "programming" and operation not in ["bin", "oct", "hex", "~", "!"]:
-        num2 = get_number("Enter second number")
-    else:
-        num2 = None
-
+    num1, num2 = get_numbers(menu_name, operation)
     result = calculate(menu_name, operation, num1, num2)
 
-    print(f"\033[32mResult: {result}\033[0m")
-    last_calculation = "\033[34m{0} {1} {2} = {3}\033[0m".format(num1, operation, num2 if num2 is not None else '',
-                                                                 result)
+    # Todo : result represent and history represent and angle unit represent
+    if num2 is None:
+        if operation in single_number_operations.get('basic', []):
+            if operation == '^':
+                last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num1, operation, 2, result)
+            elif operation == 'root':
+                last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format( 2, "\u221A", num1, result)
+        elif operation in single_number_operations.get('advanced', []):
+            if operation == '||':
+                last_calculation = "\033[32m|{0}| = {1}\033[0m".format(num1, result)
+            elif operation == '%':
+                last_calculation = "\033[32m{0} {1} = {2}\033[0m".format(num1, operation, result)
+            elif operation == 'n!':
+                last_calculation = "\033[32m{0}! = {1}\033[0m".format(num1, result)
+            else:
+                last_calculation = "\033[32m{0}({1}) = {2}\033[0m".format(operation, num1, result)
+        elif operation in single_number_operations.get('trigonometric', []):
+            last_calculation = "\033[32m{0}({1}) = {2}\033[0m".format(operation, num1, result)
+        elif operation in single_number_operations.get('programming', []):
+            last_calculation = "\033[32m{0} {1} = {2}\033[0m".format(operation, num1, result)
+
+    elif operation == 'mod':
+        last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num1, '%', num2, result)
+    elif operation == 'root':
+        last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num2, "\u221A", num1, result)
+    else:
+        last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num1, operation, num2, result)
+
+    print(last_calculation)
+
     # history[menu_name].append(f"{num1} {operation} {num2 if num2 is not None else ''} = {result}")
     history[menu_name].append(last_calculation)
 
@@ -265,6 +289,17 @@ def get_number(prompt):
             return float(input(f"{prompt}: "))
         except ValueError:
             print("\033[31mInvalid number. Try again.\033[0m")
+
+
+def get_numbers(menu_name, operation):
+    # Check if the operation requires a single number
+    if operation in single_number_operations.get(menu_name, []):
+        num1 = get_number("Enter the number")
+        return num1, None
+    else:
+        num1 = get_number("Enter first number")
+        num2 = get_number("Enter second number")
+        return num1, num2
 
 
 # Clear screen
