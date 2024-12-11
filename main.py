@@ -2,10 +2,17 @@ import os
 import math
 
 # History lists for each menu
-basic_cal_list = []
-advanced_cal_list = []
-trigonometric_cal_list = []
-programming_cal_list = []
+history = {
+    "basic": [],
+    "advanced": [],
+    "trigonometric": [],
+    "programming": []
+}
+
+is_known_choice = True
+
+# Angle unit is degree by default
+is_degree = True
 
 # Define menus dictionary
 menus = {
@@ -22,20 +29,22 @@ menus = {
         ("Multiplication", "*"),
         ("Division", "/"),
         ("Square", "^"),
-        ("Square Root", "√"),
+        ("Square Root", "root"),
         ("Remainder", "mod"),
         ("History", "?"),
+        ("Reset", "$"),
         ("Back to Main", "<<")
     ]),
     "advanced": ("ADVANCED", [
         ("Absolute", "||"),
         ("Percentage", "%"),
         ("Power", "^"),
-        ("nth Root", "√"),
+        ("nth Root", "root"),
         ("Logarithm (Base 10)", "log"),
         ("Logarithm (Base e)", "ln"),
         ("Factorial", "n!"),
         ("History", "?"),
+        ("Reset", "$"),
         ("Back to Main", "<<")
     ]),
     "trigonometric": ("TRIGONOMETRIC", [
@@ -46,6 +55,7 @@ menus = {
         ("Secant", "sec"),
         ("Cotangent", "cot"),
         ("History", "?"),
+        ("Reset", "$"),
         ("Back to Main", "<<")
     ]),
     "angle_units": ("UNITS OF ANGLE", [
@@ -64,52 +74,202 @@ menus = {
         ("Logical OR", "||"),
         ("Logical NOT", "!"),
         ("History", "?"),
+        ("Reset", "$"),
         ("Back to Main", "<<")
     ])
 }
 
 
 # Displays a menu dynamically
-def show_menu(title, options):
-    """
-    :param title: The title of the menu.
-    :param options: A list of tuples containing option text and shortcuts.
-    """
-    print('\033[36m' + '-' * 31)
-    print(f"|{title.center(29)}|")
-    print('-' * 31 + '\033[0m')
-    print("Select operation.")
-    for idx, (desc, shortcut) in enumerate(options, start=1):
-        digit = count_digits(idx)
-        padding = 21 - digit  # Adjust padding based on the number of digits
-        print(f"{idx}. {desc:<{padding}}: {shortcut}")
-    print("")
+def show_menu(menu_name):
+    global is_known_choice
+
+    while True:
+        # title: The title of the menu.
+        # options: A list of tuples containing option text and shortcuts.
+        title, options = menus[menu_name]
+
+        print('\033[36m' + '-' * 38)
+        print(f"|{title.center(36)}|")
+        print('-' * 38 + '\033[0m')
+        print("Select operation.")
+
+        for idx, (desc, shortcut) in enumerate(options, start=1):
+            # Adjust padding based on the number of digits
+            digit = count_digits(idx)
+            padding = 21 - digit
+            print(f"{idx}. {desc:<{padding}}: {shortcut}")
 
 
-def show_main_menu():
-    # title, options = menus["main"]  # Unpack manually
-    # show_menu(title, options)  # Pass arguments to the function
-    show_menu(*menus["main"])
+        is_known_choice = True
+        handle_menu_input(menu_name, options)
 
 
-def show_basic_menu():
-    show_menu(*menus["basic"])
+# Handle menu input
+def handle_menu_input(menu_name, options):
+    global is_known_choice
+
+    shortcuts = {shortcut: desc for desc, shortcut in options}
+    while is_known_choice:
+        choice = input(f"Enter choice ({', '.join(shortcuts.keys())}): ").strip()
+        if choice in shortcuts:
+            if choice == "#":
+                print("\033[32mDone. Terminating\033[0m")
+                exit()
+            elif choice == "<<":
+                clear()
+                show_menu("main")
+                return
+            elif choice == "$":
+                clear()
+                history[menu_name] = []
+                show_menu(menu_name)
+            elif choice == "?":
+                clear()
+                show_history(menu_name)
+            else:
+                if menu_name == "main":
+                    clear()
+                    navigate_to_sub_menus(choice)
+                elif menu_name == "angle_units":
+                    clear()
+                    select_angle_unit(choice)
+                else:
+                    perform_operation(menu_name, choice)
+        else:
+            print("\033[31mUnrecognized choice, try again.\033[0m")
 
 
-def show_advanced_menu():
-    show_menu(*menus["advanced"])
 
 
-def show_trigonometric_menu():
-    show_menu(*menus["trigonometric"])
+# navigate to sub menus
+def navigate_to_sub_menus(menu):
+    if menu == 'BAS':
+        show_menu('basic')
+    elif menu == 'ADV':
+        show_menu('advanced')
+    elif menu == 'TRI':
+        show_menu('angle_units')
+    elif menu == 'PRO':
+        show_menu('programming')
 
 
-def show_angles_units():
-    show_menu(*menus["angle_units"])
+def select_angle_unit(unit):
+    global is_degree  # Declare is_degree as global
+
+    if unit == "rad":
+        is_degree = False
+
+    show_menu('trigonometric')
 
 
-def show_programming_menu():
-    show_menu(*menus["programming"])
+# Perform operations
+def perform_operation(menu_name, operation):
+    global is_known_choice
+
+    num1 = get_number("Enter first number")
+
+    if menu_name == "basic" and operation not in ["^", "root"]:
+        num2 = get_number("Enter second number")
+    elif menu_name == "advanced" and operation not in ["||", "%", "log", "ln", "n!"]:
+        num2 = get_number("Enter second number")
+    elif menu_name == "programming" and operation not in ["bin", "oct", "hex", "~", "!"]:
+        num2 = get_number("Enter second number")
+    else:
+        num2 = None
+
+    result = calculate(menu_name, operation, num1, num2)
+
+    print(f"\033[34mResult: {result}\033[0m")
+    last_calculation = "\033[34m{0} {1} {2} = {3}\033[0m".format(num1, operation, num2 if num2 is not None else '',
+                                                                 result)
+    # history[menu_name].append(f"{num1} {operation} {num2 if num2 is not None else ''} = {result}")
+    history[menu_name].append(last_calculation)
+
+    input("\nPress Enter to go next calculation...")
+    is_known_choice = False
+    clear()
+
+
+# Perform calculations
+def calculate(menu, operation, num1, num2):
+    if menu == "basic":
+        operations = {
+            "+": lambda a, b: a + b,
+            "-": lambda a, b: a - b,
+            "*": lambda a, b: a * b,
+            "/": lambda a, b: a / b if b != 0 else "\033[31mError: Division by zero\033[0m",
+            "^": lambda a, _: a ** 2,
+            "root": lambda a, _: math.sqrt(a),
+            "mod": lambda a, b: a % b
+        }
+    elif menu == "advanced":
+        operations = {
+            "||": lambda a, _: abs(a),
+            "%": lambda a, _: a / 100,
+            "^": lambda a, b: a ** b,
+            "root": lambda a, b: a ** (1 / b),
+            "log": lambda a, _: math.log10(a),
+            "ln": lambda a, _: math.log(a),
+            "n!": lambda a, _: math.factorial(int(a))
+        }
+    elif menu == "trigonometric":
+        angle_convert = math.radians if is_degree else lambda x: x
+        operations = {
+            "sin": lambda a, _: math.sin(angle_convert(a)),
+            "cos": lambda a, _: math.cos(angle_convert(a)),
+            "tan": lambda a, _: math.tan(angle_convert(a)),
+            "cosec": lambda a, _: 1 / math.sin(angle_convert(a)),
+            "sec": lambda a, _: 1 / math.cos(angle_convert(a)),
+            "cot": lambda a, _: 1 / math.tan(angle_convert(a)) if math.tan(angle_convert(a)) != 0 else float('inf')
+        }
+    elif menu == "programming":
+        operations = {
+            "bin": lambda a, _: bin(int(a)),
+            "oct": lambda a, _: oct(int(a)),
+            "hex": lambda a, _: hex(int(a)),
+            "&": lambda a, b: int(a) & int(b),
+            "|": lambda a, b: int(a) | int(b),
+            "~": lambda a, _: ~int(a),
+            "&&": lambda a, b: bool(a) and bool(b),
+            "||": lambda a, b: bool(a) or bool(b),
+            "!": lambda a, _: not bool(a)
+        }
+    else:
+        raise ValueError("Unsupported menu")
+
+    return operations[operation](num1,num2)
+
+
+# Show history
+def show_history(menu):
+    global is_known_choice
+    print('\033[36m' + '-' * 38)
+    print(f"|{f'HISTORY OF {menu.upper()} MENU'.center(36)}|")
+    print('-' * 38 + '\033[0m')
+
+    if not history[menu]:
+        print("\033[34mNo past calculations to show\033[0m")
+    else:
+        for entry in history[menu]:
+            print(entry)
+    input("\nPress Enter to go back...")
+    is_known_choice = False
+
+
+# Get number input
+def get_number(prompt):
+    while True:
+        try:
+            return float(input(f"{prompt}: "))
+        except ValueError:
+            print("\033[31mInvalid number. Try again.\033[0m")
+
+
+# Clear screen
+def clear():
+    # Clear the console - 'nt' for Windows and 'posix' for Unix-like systems
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 # get number of digits count
@@ -117,193 +277,7 @@ def count_digits(num):
     return len(f"{abs(num)}")
 
 
-
-# Function to clear the console screen
-def clear():
-    # Clear the console - 'nt' for Windows and 'posix' for Unix-like systems
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-
-# Input helper to safely get float input
-def input_num(prompt):
-    while True:
-        num = input(f"{prompt}: ")
-        if num.endswith('$'):
-            clear()
-            return 0
-
-        if num.endswith('#'):
-            return -1
-
-        try:
-            return float(num)
-        except ValueError:
-            print("\033[31mInvalid input, please try again.\033[0m")
-            continue
-
-# Basic arithmetic operations
-
-def add(a, b):
-    return a + b
-
-def subtract(a, b):
-    return a - b
-
-def multiply(a, b):
-    return a * b
-
-def divide(a, b):
-    if b != 0:
-        return a / b
-    else:
-        return "\033[31mError: Division by zero\033[0m"
-
-def square(a):
-    return a ** 2
-
-def square_root(a):
-    return math.sqrt(a)
-
-def remainder(a, b):
-    return a % b
-
-
-# Advanced operations
-
-def absolute(a):
-    return abs(a)
-
-def percentage(a):
-    return a / 100
-
-def nth_root(a, n):
-    return a ** (1/n)
-
-def logarithm_base_10(a):
-    return math.log10(a)
-
-def logarithm_base_e(a):
-    return math.log(a)
-
-def factorial(a):
-    return math.factorial(int(a))
-
-
-# Programming conversion operations
-
-def decimal_to_binary(num):
-    return bin(int(num))
-
-def decimal_to_octal(num):
-    return oct(int(num))
-
-def decimal_to_hex(num):
-    return hex(int(num))
-
-def bitwise_and(a, b):
-    return a & b  # Bitwise AND
-
-def bitwise_or(a, b):
-    return a | b  # Bitwise OR
-
-def bitwise_not(a):
-    return ~a  # Bitwise NOT
-
-def logical_and(a, b):
-    return a and b  # Logical AND
-
-def logical_or(a, b):
-    return a or b  # Logical OR
-
-def logical_not(a):
-    return not a  # Logical NOT
-
-
-# Show history for each menu
-
-def iterate_cal_list(cal_list):
-    if len(cal_list) == 0:
-        print("\033[34mNo past calculations to show\033[0m")
-    else:
-        for cal in cal_list:
-            print(cal)
-
-def show_history(menu):
+# Main execution
+if __name__ == "__main__":
     clear()
-
-    print('\033[36m-------------------------------')
-    print('|           HISTORY          |')
-    print('-------------------------------\033[0m')
-
-    menu = menu.upper()
-    if menu == 'BASIC':
-        iterate_cal_list(basic_cal_list)
-    elif menu == 'ADVANCED':
-        iterate_cal_list(advanced_cal_list)
-    elif menu == 'TRIGONOMETRIC':
-        iterate_cal_list(trigonometric_cal_list)
-    elif menu == 'PROGRAMMING':
-        iterate_cal_list(programming_cal_list)
-
-    input("\nPress Enter to go back...")
-
-show_main_menu()
-show_basic_menu()
-show_advanced_menu()
-show_trigonometric_menu()
-show_programming_menu()
-show_angles_units()
-# show_history("basic")
-
-# def select_op(operation):
-#     if operation == '#':
-#         return -1
-#     elif operation == '$':
-#         clear()
-#         return 0
-#     elif operation == '?':
-#         show_history()
-#         return 0
-#     elif operation == 'X':
-#         clear()
-#         return 0
-#     elif operation in ('+', '-', '*', '/', '^', '%'):
-#         result = 0.0
-#
-#         num1 = input_num('first')
-#         num2 = input_num('second')
-#
-#         if operation == '+':
-#             result = add(num1, num2)
-#         elif operation == '-':
-#             result = subtract(num1, num2)
-#         elif operation == '*':
-#             result = multiply(num1, num2)
-#         elif operation == '/':
-#             result = divide(num1, num2)
-#         elif operation == '^':
-#             result = power(num1, num2)
-#         elif operation == '%':
-#             result = remainder(num1, num2)
-#         else:
-#             print("\033[31mSomething Went Wrong\033[0m")
-#
-#         last_calculation = "\033[34m{0} {1} {2} = {3}\033[0m".format(num1, operation, num2, result)
-#         print(last_calculation)
-#         basic_cal_list.append(last_calculation)
-#
-#
-#     else:
-#         print("\033[31mUnrecognized operation\033[0m")
-#
-
-
-
-# while True:
-#     show_main_menu()
-#     # take input from the user
-#     choice = input("Enter choice(+,-,*,/,^,%,#,$,?): ")
-#     if select_op(choice) == -1:
-#         # program ends here
-#         print("\033[32mDone. Terminating\033[0m")
-#         exit()
+    show_menu("main")
