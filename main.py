@@ -177,7 +177,6 @@ def perform_operation(menu_name, operation):
     num1, num2 = get_numbers(menu_name, operation)
     result = calculate(menu_name, operation, num1, num2)
 
-    # Todo : result represent and history represent and angle unit represent
     if num2 is None:
         if operation in single_number_operations.get('basic', []):
             if operation == '^':
@@ -194,7 +193,7 @@ def perform_operation(menu_name, operation):
             else:
                 last_calculation = "\033[32m{0}({1}) = {2}\033[0m".format(operation, num1, result)
         elif operation in single_number_operations.get('trigonometric', []):
-            last_calculation = "\033[32m{0}({1}) = {2}\033[0m".format(operation, num1, result)
+            last_calculation = "\033[32m{0}({1} {2}) = {3}\033[0m".format(operation, num1, 'deg' if is_degree else 'rad' , result)
         elif operation in single_number_operations.get('programming', []):
             last_calculation = "\033[32m{0} {1} = {2}\033[0m".format(operation, num1, result)
 
