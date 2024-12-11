@@ -9,7 +9,7 @@ history = {
     "programming": []
 }
 
-is_known_choice = True
+is_exist_menu = True
 
 # Angle unit is degree by default
 is_degree = True
@@ -56,6 +56,7 @@ menus = {
         ("Cotangent", "cot"),
         ("History", "?"),
         ("Reset", "$"),
+        ("Back to Units", "<"),
         ("Back to Main", "<<")
     ]),
     "angle_units": ("UNITS OF ANGLE", [
@@ -82,7 +83,7 @@ menus = {
 
 # Displays a menu dynamically
 def show_menu(menu_name):
-    global is_known_choice
+    global is_exist_menu
 
     while True:
         # title: The title of the menu.
@@ -100,22 +101,25 @@ def show_menu(menu_name):
             padding = 21 - digit
             print(f"{idx}. {desc:<{padding}}: {shortcut}")
 
-
-        is_known_choice = True
+        is_exist_menu = True
         handle_menu_input(menu_name, options)
 
 
 # Handle menu input
 def handle_menu_input(menu_name, options):
-    global is_known_choice
+    global is_exist_menu
 
     shortcuts = {shortcut: desc for desc, shortcut in options}
-    while is_known_choice:
+
+    while is_exist_menu:
         choice = input(f"Enter choice ({', '.join(shortcuts.keys())}): ").strip()
         if choice in shortcuts:
             if choice == "#":
                 print("\033[32mDone. Terminating\033[0m")
                 exit()
+            elif choice == "<":
+                clear()
+                show_menu("angle_units")
             elif choice == "<<":
                 clear()
                 show_menu("main")
@@ -130,7 +134,7 @@ def handle_menu_input(menu_name, options):
             else:
                 if menu_name == "main":
                     clear()
-                    navigate_to_sub_menus(choice)
+                    navigate_to_sub_menus(choice, shortcuts)
                 elif menu_name == "angle_units":
                     clear()
                     select_angle_unit(choice)
@@ -140,18 +144,12 @@ def handle_menu_input(menu_name, options):
             print("\033[31mUnrecognized choice, try again.\033[0m")
 
 
-
-
 # navigate to sub menus
-def navigate_to_sub_menus(menu):
-    if menu == 'BAS':
-        show_menu('basic')
-    elif menu == 'ADV':
-        show_menu('advanced')
-    elif menu == 'TRI':
-        show_menu('angle_units')
-    elif menu == 'PRO':
-        show_menu('programming')
+def navigate_to_sub_menus(menu, sub_menus):
+    sub_menus["TRI"] = "angle_units"
+
+    # return "main" as a fallback.
+    show_menu(sub_menus.get(menu, "main").lower())
 
 
 def select_angle_unit(unit):
@@ -159,13 +157,15 @@ def select_angle_unit(unit):
 
     if unit == "rad":
         is_degree = False
+    elif unit == "deg":
+        is_degree = True
 
     show_menu('trigonometric')
 
 
 # Perform operations
 def perform_operation(menu_name, operation):
-    global is_known_choice
+    global is_exist_menu
 
     num1 = get_number("Enter first number")
 
@@ -180,14 +180,14 @@ def perform_operation(menu_name, operation):
 
     result = calculate(menu_name, operation, num1, num2)
 
-    print(f"\033[34mResult: {result}\033[0m")
+    print(f"\033[32mResult: {result}\033[0m")
     last_calculation = "\033[34m{0} {1} {2} = {3}\033[0m".format(num1, operation, num2 if num2 is not None else '',
                                                                  result)
     # history[menu_name].append(f"{num1} {operation} {num2 if num2 is not None else ''} = {result}")
     history[menu_name].append(last_calculation)
 
     input("\nPress Enter to go next calculation...")
-    is_known_choice = False
+    is_exist_menu = False
     clear()
 
 
@@ -238,12 +238,12 @@ def calculate(menu, operation, num1, num2):
     else:
         raise ValueError("Unsupported menu")
 
-    return operations[operation](num1,num2)
+    return operations[operation](num1, num2)
 
 
 # Show history
 def show_history(menu):
-    global is_known_choice
+    global is_exist_menu
     print('\033[36m' + '-' * 38)
     print(f"|{f'HISTORY OF {menu.upper()} MENU'.center(36)}|")
     print('-' * 38 + '\033[0m')
@@ -254,7 +254,8 @@ def show_history(menu):
         for entry in history[menu]:
             print(entry)
     input("\nPress Enter to go back...")
-    is_known_choice = False
+    is_exist_menu = False
+    clear()
 
 
 # Get number input
