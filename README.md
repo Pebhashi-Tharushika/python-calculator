@@ -3,8 +3,9 @@
 **A versatile calculator application built using Python**, operating as a **Command Line Interface (CLI)** tool. 
 It is designed to support a wide range of arithmetic calculations, whether working with **integers or decimals**. 
 The operations are organized into distinct and well-defined sections, ensuring a smooth and intuitive user experience.
+<br><br>
 
-- **Basic Operations** <br>
+- **Basic Operations**
    Perform fundamental arithmetic operations:
   - Addition
   - Subtraction
@@ -13,7 +14,7 @@ The operations are organized into distinct and well-defined sections, ensuring a
   - Square
   - Square Root
   - Remainder
-
+<br>
 
 - **Advanced Operations** <br>
    Perform higher-level mathematical operations: 
@@ -24,7 +25,7 @@ The operations are organized into distinct and well-defined sections, ensuring a
   - Base 10 Logarithm (log)
   - Base e Logarithm (ln)
   - Factorial Calculation
-
+<br>
 
 - **Trigonometric Operations** <br>
    Calculate trigonometric functions with options to select angular units either Radian or Degree:
@@ -34,7 +35,7 @@ The operations are organized into distinct and well-defined sections, ensuring a
   - Co-secant (cosec)
   - Secant (sec)
   - Cotangent (cot)
-
+<br>
 
 - **Programming Operations** <br>
    Perform number base conversions, bitwise and logical operations:
