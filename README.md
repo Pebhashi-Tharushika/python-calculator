@@ -1,4 +1,4 @@
-## Python Calculator
+## CalcyMATH Calculator
 
 **A versatile calculator application built using Python**, operating as a **Command Line Interface (CLI)** tool. 
 It is designed to support a wide range of arithmetic calculations, whether working with **integers or decimals**. 
