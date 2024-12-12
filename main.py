@@ -207,7 +207,6 @@ def perform_operation(menu_name, operation):
 
     print(last_calculation)
 
-    # history[menu_name].append(f"{num1} {operation} {num2 if num2 is not None else ''} = {result}")
     history[menu_name].append(last_calculation)
 
     input("\nPress Enter to go next calculation...")
@@ -272,7 +271,6 @@ def divide(a, b):
     result = a / b
 
     if result.is_integer():
-        print(result.is_integer())
         return int(result)
 
     return result
@@ -310,19 +308,16 @@ def get_number(prompt):
     while True:
         num = input(f"{prompt}: ")
 
-        # Allow exit condition with '$'
+        # reset during taking operands
         if num == '$':
             return '$'
 
         try:
-            # Attempt to convert to integer first
             return int(num)
         except ValueError:
             try:
-                # If integer conversion fails, try float conversion
                 return float(num)
             except ValueError:
-                # If both conversions fail, show an error message
                 print("\033[31mInvalid number. Try again.\033[0m")
 
 
