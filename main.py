@@ -21,6 +21,7 @@ menus = {
         ("Advanced", "ADV"),
         ("Trigonometric", "TRI"),
         ("Programming", "PRO"),
+        ("Reset", "$"),
         ("Terminate", "#")
     ]),
     "basic": ("BASIC", [
@@ -131,10 +132,8 @@ def handle_menu_input(menu_name, options):
             elif choice == "<<":
                 clear()
                 show_menu("main")
-                return
             elif choice == "$":
-                clear()
-                show_menu(menu_name)
+                reset(menu_name)
             elif choice == "?":
                 clear()
                 show_history(menu_name)
@@ -182,7 +181,7 @@ def perform_operation(menu_name, operation):
             if operation == '^':
                 last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num1, operation, 2, result)
             elif operation == 'root':
-                last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format( 2, "\u221A", num1, result)
+                last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(2, "\u221A", num1, result)
         elif operation in single_number_operations.get('advanced', []):
             if operation == '||':
                 last_calculation = "\033[32m|{0}| = {1}\033[0m".format(num1, result)
@@ -193,7 +192,8 @@ def perform_operation(menu_name, operation):
             else:
                 last_calculation = "\033[32m{0}({1}) = {2}\033[0m".format(operation, num1, result)
         elif operation in single_number_operations.get('trigonometric', []):
-            last_calculation = "\033[32m{0}({1} {2}) = {3}\033[0m".format(operation, num1, 'deg' if is_degree else 'rad' , result)
+            last_calculation = "\033[32m{0}({1} {2}) = {3}\033[0m".format(operation, num1,
+                                                                          'deg' if is_degree else 'rad', result)
         elif operation in single_number_operations.get('programming', []):
             last_calculation = "\033[32m{0} {1} = {2}\033[0m".format(operation, num1, result)
 
@@ -284,8 +284,13 @@ def show_history(menu):
 # Get number input
 def get_number(prompt):
     while True:
+        num = input(f"{prompt}: ")
+
+        if num == '$':
+            return '$'
+
         try:
-            return float(input(f"{prompt}: "))
+            return float(num)
         except ValueError:
             print("\033[31mInvalid number. Try again.\033[0m")
 
@@ -294,10 +299,22 @@ def get_numbers(menu_name, operation):
     # Check if the operation requires a single number
     if operation in single_number_operations.get(menu_name, []):
         num1 = get_number("Enter the number")
+
+        if num1 == '$':
+            reset(menu_name)
+
         return num1, None
     else:
         num1 = get_number("Enter first number")
+
+        if num1 == '$':
+            reset(menu_name)
+
         num2 = get_number("Enter second number")
+
+        if num2 == '$':
+            reset(menu_name)
+
         return num1, num2
 
 
@@ -310,6 +327,12 @@ def clear():
 # get number of digits count
 def count_digits(num):
     return len(f"{abs(num)}")
+
+
+# discontinue the current calculation and go new calculation
+def reset(menu_name):
+    clear()
+    show_menu(menu_name)
 
 
 # Main execution
