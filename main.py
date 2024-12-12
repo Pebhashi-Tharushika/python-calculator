@@ -197,8 +197,9 @@ def perform_operation(menu_name, operation):
         elif operation in single_number_operations.get('programming', []):
             last_calculation = "\033[32m{0} {1} = {2}\033[0m".format(operation, num1, result)
 
-    elif operation == 'mod':
-        last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num1, '%', num2, result)
+    elif operation == '/' or operation == 'mod':
+        last_calculation = "\033[32m{0} {1} {2} {3} {4}\033[0m".format(num1, '/' if operation == '/' else '%', num2,
+                                                                       ' ' if isinstance(result, str) else "=", result)
     elif operation == 'root':
         last_calculation = "\033[32m{0} {1} {2} = {3}\033[0m".format(num2, "\u221A", num1, result)
     else:
@@ -221,10 +222,10 @@ def calculate(menu, operation, num1, num2):
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
-            "/": lambda a, b: a / b if b != 0 else "\033[31mError: Division by zero\033[0m",
+            "/": lambda a, b: divide(a, b),
             "^": lambda a, _: a ** 2,
             "root": lambda a, _: math.sqrt(a),
-            "mod": lambda a, b: a % b
+            "mod": lambda a, b: modulus(a, b)
         }
     elif menu == "advanced":
         operations = {
@@ -264,6 +265,29 @@ def calculate(menu, operation, num1, num2):
     return operations[operation](num1, num2)
 
 
+def divide(a, b):
+    if b == 0:
+        return "\033[31mError: Division by zero\033[0m"
+
+    result = a / b
+
+    if result.is_integer():
+        print(result.is_integer())
+        return int(result)
+
+    return result
+
+
+def modulus(a, b):
+    if b == 0:
+        return "\033[31mError: modulo by zero\033[0m"
+
+    if isinstance(a, int) and isinstance(b, int):
+        return a % b
+    else:
+        return math.fmod(a,b)
+
+
 # Show history
 def show_history(menu):
     global is_exist_menu
@@ -281,18 +305,25 @@ def show_history(menu):
     clear()
 
 
-# Get number input
+# get operands (numbers)
 def get_number(prompt):
     while True:
         num = input(f"{prompt}: ")
 
+        # Allow exit condition with '$'
         if num == '$':
             return '$'
 
         try:
-            return float(num)
+            # Attempt to convert to integer first
+            return int(num)
         except ValueError:
-            print("\033[31mInvalid number. Try again.\033[0m")
+            try:
+                # If integer conversion fails, try float conversion
+                return float(num)
+            except ValueError:
+                # If both conversions fail, show an error message
+                print("\033[31mInvalid number. Try again.\033[0m")
 
 
 def get_numbers(menu_name, operation):
