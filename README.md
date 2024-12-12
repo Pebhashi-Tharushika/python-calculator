@@ -60,3 +60,16 @@ The operations are organized into distinct and well-defined sections, ensuring a
 6. **Organized Categories:** Arithmetic operations are categorized for ease of use. <br><br>
 7. **User-Friendly CLI Interface:** Simple and intuitive navigation for seamless interaction with operations and categories. <br><br>
    
+
+### Previews
+![](asset/welcome.png)
+![](asset/basic_cal.png)
+![](asset/advance_cal.png)
+![](asset/angular_units.png)
+![](asset/trigonometric_deg_cal.png)
+![](asset/trigonometric_rad_cal.png)
+![](asset/programming_cal.png)
+![](asset/history.png)
+
+### License
+This project is licensed under the [MIT License](LICENSE).
